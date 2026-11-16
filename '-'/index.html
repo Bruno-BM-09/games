@@ -1,0 +1,231 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jogo da Memória</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #f4f4f4;
+    font-family: Arial, sans-serif;
+    color: #222;
+}
+
+.container {
+    width: 340px;
+    text-align: center;
+}
+
+h1 {
+    font-size: 26px;
+    margin-bottom: 8px;
+}
+
+p {
+    color: #777;
+    font-size: 14px;
+}
+
+.info {
+    margin: 20px 0;
+}
+
+.board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.card {
+    height: 95px;
+    background: #222;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 30px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.card:hover {
+    background: #444;
+}
+
+.card.open,
+.card.matched {
+    background: white;
+    color: #222;
+    border: 1px solid #ddd;
+}
+
+.card.matched {
+    opacity: 0.5;
+    cursor: default;
+}
+
+button.restart {
+    margin-top: 22px;
+    padding: 11px 24px;
+    background: #222;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+button.restart:hover {
+    background: #444;
+}
+
+#message {
+    margin-top: 15px;
+    font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Jogo da Memória</h1>
+    <p>Encontre todos os pares!</p>
+
+    <div class="info">
+        Tentativas: <span id="attempts">0</span>
+    </div>
+
+    <div class="board" id="board"></div>
+
+    <p id="message"></p>
+
+    <button class="restart" onclick="startGame()">
+        Reiniciar jogo
+    </button>
+
+</div>
+
+<script>
+const symbols = ['🍎', '🚀', '⭐', '🎵', '🐱', '🌙'];
+
+let cards = [];
+let firstCard = null;
+let secondCard = null;
+let locked = false;
+let attempts = 0;
+let matched = 0;
+
+const board = document.getElementById('board');
+const attemptsText = document.getElementById('attempts');
+const message = document.getElementById('message');
+
+function startGame() {
+    cards = [...symbols, ...symbols];
+
+    cards.sort(() => Math.random() - 0.5);
+
+    board.innerHTML = '';
+    attempts = 0;
+    matched = 0;
+    firstCard = null;
+    secondCard = null;
+    locked = false;
+
+    attemptsText.textContent = attempts;
+    message.textContent = '';
+
+    cards.forEach((symbol, index) => {
+        const card = document.createElement('button');
+
+        card.className = 'card';
+        card.textContent = '?';
+
+        card.dataset.symbol = symbol;
+
+        card.addEventListener('click', () => {
+            flipCard(card);
+        });
+
+        board.appendChild(card);
+    });
+}
+
+function flipCard(card) {
+    if (
+        locked ||
+        card.classList.contains('open') ||
+        card.classList.contains('matched')
+    ) {
+        return;
+    }
+
+    card.textContent = card.dataset.symbol;
+    card.classList.add('open');
+
+    if (!firstCard) {
+        firstCard = card;
+        return;
+    }
+
+    secondCard = card;
+    attempts++;
+
+    attemptsText.textContent = attempts;
+
+    checkMatch();
+}
+
+function checkMatch() {
+    if (
+        firstCard.dataset.symbol ===
+        secondCard.dataset.symbol
+    ) {
+        firstCard.classList.add('matched');
+        secondCard.classList.add('matched');
+
+        matched += 2;
+
+        resetTurn();
+
+        if (matched === cards.length) {
+            message.textContent =
+                'Parabéns! Você encontrou todos os pares!';
+        }
+
+    } else {
+        locked = true;
+
+        setTimeout(() => {
+            firstCard.textContent = '?';
+            secondCard.textContent = '?';
+
+            firstCard.classList.remove('open');
+            secondCard.classList.remove('open');
+
+            resetTurn();
+        }, 800);
+    }
+}
+
+function resetTurn() {
+    firstCard = null;
+    secondCard = null;
+    locked = false;
+}
+
+startGame();
+</script>
+
+</body>
+</html>
